@@ -1,5 +1,16 @@
+# Delete Book Examples
+
 ```python
-from bookshelf.models import Book
-book = Book.objects.get(title="1984")
-book
+# Delete a specific book by title
+book = Book.objects.get(title="Nineteen Eighty-Four")
+book.delete()
+
+# Delete using filter
+Book.objects.filter(title="Nineteen Eighty-Four").delete()
+
+# Delete all books by an author
+Book.objects.filter(author="George Orwell").delete()
+
+# Delete all books
+Book.objects.all().delete()
 ```
