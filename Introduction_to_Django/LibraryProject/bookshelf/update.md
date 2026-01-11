@@ -1,9 +1,11 @@
-from django.db import models
+# Update Book Examples
 
-class Book(models.Model):
-title = models.CharField(max_length=200)
-author = models.CharField(max_length=100)
-publication_year = models.IntegerField()
+```python
+# Update a book's title
+book = Book.objects.get(title="1984")
+book.title = "Nineteen Eighty-Four"
+book.save()
 
-    def __str__(self):
-        return self.title
+# Alternative method using update()
+Book.objects.filter(title="1984").update(title="Nineteen Eighty-Four")
+```
