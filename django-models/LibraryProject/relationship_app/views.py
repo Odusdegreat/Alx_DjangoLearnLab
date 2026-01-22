@@ -5,7 +5,7 @@ from .models import Book, Library
 # Function-based view to list all books
 def list_books(request):
     books = Book.objects.all()  # Fetch all books from the database
-    return render(request, 'templates/list_books.html', {'books': books})
+    return render(request, 'list_books.html', {'books': books})
 
 # Class-based view to display details for a specific library
 class LibraryDetailView(DetailView):
