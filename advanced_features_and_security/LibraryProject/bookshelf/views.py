@@ -1,13 +1,14 @@
-from django.contrib.auth.decorators import permission_required
-from django.shortcuts import render
-from .models import Book
+from django.shortcuts import render, redirect
+from .forms import ExampleForm  # Make sure to import ExampleForm here
 
-# View to list all books (only users with 'can_view' permission can access it)
-@permission_required('bookshelf.can_view', raise_exception=True)
-def book_list(request):
-    """
-    View to list all books in the database.
-    This view is only accessible to users with the 'can_view' permission.
-    """
-    books = Book.objects.all()  # Fetch all books from the database
-    return render(request, 'book_list.html', {'books': books})  # Pass books to the template
+# View to handle the form for creating a new book
+def create_book(request):
+    if request.method == 'POST':
+        form = ExampleForm(request.POST)
+        if form.is_valid():
+            form.save()  # Save the new book instance
+            return redirect('book_list')  # Redirect to the book list page after saving
+    else:
+        form = ExampleForm()  # Create an empty form for GET request
+
+    return render(request, 'create_book.html', {'form': form})
