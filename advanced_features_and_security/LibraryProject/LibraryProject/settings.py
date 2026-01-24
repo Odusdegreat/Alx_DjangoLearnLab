@@ -18,3 +18,6 @@ SECURE_SSL_REDIRECT = True
 # Cookie settings
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True  # Ensure sessions expire when the browser closes
 CSRF_COOKIE_HTTPONLY = True  # Ensure the CSRF cookie is accessible only via HTTP (not JavaScript)
+
+# Update installed apps to include the relationship_app
+SECURE_HSTS_SECONDS = 31536000  # Enforce HSTS for one year
