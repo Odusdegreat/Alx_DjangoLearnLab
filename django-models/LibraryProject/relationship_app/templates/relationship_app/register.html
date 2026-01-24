@@ -1,16 +1,29 @@
-<!-- register.html -->
 <!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Register</title>
-    <link rel="stylesheet" href="{% static 'css/styles.css' %}" />
   </head>
   <body>
-    <h1>Register</h1>
-    <form method="post">
+    <h2>Register</h2>
+
+    <!-- Registration Form -->
+    <form method="POST">
       {% csrf_token %} {{ form.as_p }}
       <button type="submit">Register</button>
     </form>
+
+    <!-- Display messages (success or errors) -->
+    {% if messages %}
+    <ul>
+      {% for message in messages %}
+      <li>{{ message }}</li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+
+    <!-- Link to login page for users who already have an account -->
+    <a href="{% url 'login' %}">Already have an account? Login</a>
   </body>
 </html>
