@@ -1,9 +1,9 @@
 from django.urls import path
 from . import views
-
-app_name = 'relationship_app'
+from django.contrib.auth.views import LoginView, LogoutView
 
 urlpatterns = [
-    path('books/', views.list_books, name='list_books'),
-    path('library/<int:pk>/', views.LibraryDetailView.as_view(), name='library_detail'),
+    path('register/', views.register, name='register'),  # Register page
+    path('login/', LoginView.as_view(template_name='relationship_app/login.html'), name='login'),  # Login page
+    path('logout/', LogoutView.as_view(), name='logout'),  # Logout functionality
 ]
