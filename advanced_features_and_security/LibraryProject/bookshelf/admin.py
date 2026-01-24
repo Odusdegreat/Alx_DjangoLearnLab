@@ -1,36 +1,28 @@
-from django.contrib.auth.models import AbstractUser, BaseUserManager
-from django.db import models
+from django.contrib import admin
+from django.contrib.auth.admin import UserAdmin
+from .models import CustomUser  # Import the CustomUser model
 
-# Custom User Manager to handle user creation and superuser creation
-class CustomUserManager(BaseUserManager):
-    def create_user(self, username, email, password=None, **extra_fields):
-        """
-        Create and return a regular user with an email and password.
-        """
-        if not email:
-            raise ValueError('The Email field must be set')
-        email = self.normalize_email(email)
-        user = self.model(username=username, email=email, **extra_fields)
-        user.set_password(password)
-        user.save(using=self._db)
-        return user
+# Define the CustomUserAdmin class
+class CustomUserAdmin(UserAdmin):
+    model = CustomUser
+    list_display = ('username', 'email', 'date_of_birth', 'profile_photo', 'is_staff', 'is_active')
+    list_filter = ('is_staff', 'is_active')
+    search_fields = ('username', 'email')
+    ordering = ('email',)
 
-    def create_superuser(self, username, email, password=None, **extra_fields):
-        """
-        Create and return a superuser with an email and password.
-        """
-        extra_fields.setdefault('is_staff', True)
-        extra_fields.setdefault('is_superuser', True)
+    # Define the fields for the admin forms
+    fieldsets = (
+        (None, {'fields': ('username', 'email', 'password')}),
+        ('Personal info', {'fields': ('first_name', 'last_name', 'date_of_birth', 'profile_photo')}),
+        ('Permissions', {'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions')}),
+        ('Important dates', {'fields': ('last_login', 'date_joined')}),
+    )
+    add_fieldsets = (
+        (None, {'fields': ('username', 'email', 'password1', 'password2')}),
+        ('Personal info', {'fields': ('date_of_birth', 'profile_photo')}),
+        ('Permissions', {'fields': ('is_active', 'is_staff', 'is_superuser')}),
+    )
+    filter_horizontal = ('groups', 'user_permissions')
 
-        return self.create_user(username, email, password, **extra_fields)
-
-# Custom User model extending AbstractUser
-class CustomUser(AbstractUser):
-    date_of_birth = models.DateField(null=True, blank=True)  # Optional date_of_birth field
-    profile_photo = models.ImageField(upload_to='profile_photos/', null=True, blank=True)  # Optional profile photo field
-
-    # Link the CustomUserManager to the CustomUser model
-    objects = CustomUserManager()
-
-    def __str__(self):
-        return self.username  # Return the username as a string representation of the user
+# Register the CustomUser model with the custom admin interface
+admin.site.register(CustomUser, CustomUserAdmin)
