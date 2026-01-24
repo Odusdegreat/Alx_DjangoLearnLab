@@ -21,3 +21,5 @@ CSRF_COOKIE_HTTPONLY = True  # Ensure the CSRF cookie is accessible only via HTT
 
 # Update installed apps to include the relationship_app
 SECURE_HSTS_SECONDS = 31536000  # Enforce HSTS for one year
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True  # Apply HSTS to all subdomains
+SECURE_HSTS_PRELOAD = True  # Allow site to be included in browsers' HSTS preload list
