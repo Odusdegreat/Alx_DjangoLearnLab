@@ -1,12 +1,14 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
-    <title>Library Books</title>
+    <meta charset="UTF-8">
+    <title>Book List</title>
 </head>
 
 <body>
-    <h1>Book List</h1>
+    <h1>Library Books</h1>
+
     <ul>
         {% for book in books %}
         <li>{{ book.title }} — {{ book.author }}</li>
