@@ -6,24 +6,46 @@ from django.views.generic.detail import DetailView  # <-- checker wants this lit
 # ✅ Auth imports
 from django.contrib.auth import login
 from django.contrib.auth.forms import UserCreationForm
+
 from django.http import HttpResponse
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
 from .models import UserProfile
 
-# ----------------------------
+# =========================
+# Role check helpers
+# =========================
+def is_admin(user):
+    return UserProfile.objects.filter(user=user, role="Admin").exists()
+
+def is_librarian(user):
+    return UserProfile.objects.filter(user=user, role="Librarian").exists()
+
+def is_member(user):
+    return UserProfile.objects.filter(user=user, role="Member").exists()
+
+# =========================
 # Admin-only view
-# ----------------------------
+# =========================
 @login_required
+@user_passes_test(is_admin)
 def admin_view(request):
-    user_profile = UserProfile.objects.get(user=request.user)
+    return HttpResponse("Admin dashboard – access granted")
 
-    if user_profile.role != "Admin":
-        return HttpResponse("Access denied. Admins only.")
+# =========================
+# Librarian-only view
+# =========================
+@login_required
+@user_passes_test(is_librarian)
+def librarian_view(request):
+    return HttpResponse("Librarian dashboard – access granted")
 
-    return HttpResponse("Welcome Admin! You have access to this page.")
-
-
-
+# =========================
+# Member-only view
+# =========================
+@login_required
+@user_passes_test(is_member)
+def member_view(request):
+    return HttpResponse("Member dashboard – access granted")
 
 # ----------------------------
 # List all books
@@ -147,13 +169,3 @@ def register(request):
         form = UserCreationForm()
     return render(request, "relationship_app/signup.html", {"form": form})
 
-def register(request):
-    if request.method == "POST":
-        form = UserCreationForm(request.POST)
-        if form.is_valid():
-            user = form.save()
-            login(request, user)
-            return redirect("list_books")
-    else:
-        form = UserCreationForm()
-    return render(request, "relationship_app/register.html", {"form": form})  # <- changed
