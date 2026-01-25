@@ -6,6 +6,13 @@ from .views import list_books, LibraryDetailView, register  # <-- register is he
 from django.urls import path
 from django.contrib.auth.views import LoginView, LogoutView
 from .views import list_books, LibraryDetailView, register
+from django.urls import path
+from . import views
+
+urlpatterns = [
+    path("admin-view/", views.admin_view, name="admin_view"),
+]
+
 
 urlpatterns = [
     path("books/", list_books, name="list_books"),
