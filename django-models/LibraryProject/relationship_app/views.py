@@ -10,6 +10,36 @@ from django.contrib.auth.forms import UserCreationForm
 from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required, user_passes_test
 from .models import UserProfile
+from django.http import HttpResponse
+from django.contrib.auth.decorators import login_required, user_passes_test, permission_required
+from django.contrib.auth import login
+from django.contrib.auth.forms import UserCreationForm
+from django.views.generic.detail import DetailView
+
+from .models import Book, Library, UserProfile
+
+
+# =========================
+# Permission-based views
+# =========================
+
+@login_required
+@permission_required("relationship_app.can_add_book", raise_exception=True)
+def add_book_view(request):
+    return HttpResponse("You can add a book")
+
+
+@login_required
+@permission_required("relationship_app.can_change_book", raise_exception=True)
+def change_book_view(request):
+    return HttpResponse("You can change a book")
+
+
+@login_required
+@permission_required("relationship_app.can_delete_book", raise_exception=True)
+def delete_book_view(request):
+    return HttpResponse("You can delete a book")
+
 
 # =========================
 # Role check helpers
