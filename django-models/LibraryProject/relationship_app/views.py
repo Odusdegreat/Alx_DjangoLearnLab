@@ -39,3 +39,17 @@ def signup_view(request):
     else:
         form = UserCreationForm()
     return render(request, "relationship_app/signup.html", {"form": form})
+
+# ----------------------------
+# Register / Signup view
+# ----------------------------
+def register(request):
+    if request.method == "POST":
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            login(request, user)  # login immediately after signup
+            return redirect("list_books")
+    else:
+        form = UserCreationForm()
+    return render(request, "relationship_app/signup.html", {"form": form})
