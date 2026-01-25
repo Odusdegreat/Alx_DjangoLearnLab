@@ -6,6 +6,22 @@ from django.views.generic.detail import DetailView  # <-- checker wants this lit
 # ✅ Auth imports
 from django.contrib.auth import login
 from django.contrib.auth.forms import UserCreationForm
+from django.http import HttpResponse
+from django.contrib.auth.decorators import login_required
+from .models import UserProfile
+
+# ----------------------------
+# Admin-only view
+# ----------------------------
+@login_required
+def admin_view(request):
+    user_profile = UserProfile.objects.get(user=request.user)
+
+    if user_profile.role != "Admin":
+        return HttpResponse("Access denied. Admins only.")
+
+    return HttpResponse("Welcome Admin! You have access to this page.")
+
 
 
 
