@@ -1,10 +1,13 @@
-from django.shortcuts import render, get_object_or_404
-from .models import Library  # <-- must have this
+from django.shortcuts import render
+from .models import Book
 
-def library_detail(request, pk):
-    library = get_object_or_404(Library, pk=pk)  # <-- context variable must be "library"
+def list_books(request):
+    # Fetch all books
+    books = Book.objects.all()  # <-- MUST have this exact line
+
+    # Render template
     return render(
         request,
-        "relationship_app/library_detail.html",  # <-- exact string expected
-        {"library": library}  # <-- context key must be "library"
+        "relationship_app/list_books.html",  # <-- MUST have this exact string
+        {"books": books}
     )
