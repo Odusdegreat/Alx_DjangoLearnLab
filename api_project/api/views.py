@@ -1,6 +1,8 @@
-from django.urls import path
-from .views import BookList
+from rest_framework import generics
+from .models import Book
+from .serializers import BookSerializer
 
-urlpatterns = [
-    path('books/', BookList.as_view(), name='book-list'),
-]
+
+class BookList(generics.ListAPIView):
+    queryset = Book.objects.all()
+    serializer_class = BookSerializer
