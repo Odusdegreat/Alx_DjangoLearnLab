@@ -33,7 +33,7 @@ INSTALLED_APPS = [
     'api',
 ]
 
-# 👇 ADD THIS EXACT BLOCK (important for the checker)
+
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.TokenAuthentication',
