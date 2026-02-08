@@ -12,9 +12,9 @@ Features implemented:
 - OrderingFilter for flexible sorting
 """
 
-from rest_framework import viewsets, generics, filters
+from django_filters import rest_framework
+from rest_framework import generics, viewsets, filters
 from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
-from django_filters.rest_framework import DjangoFilterBackend
 from .models import Author, Book
 from .serializers import AuthorSerializer, BookSerializer
 
@@ -117,7 +117,7 @@ class BookListView(generics.ListAPIView):
     
     # Configure filter backends
     filter_backends = [
-        DjangoFilterBackend,  # For precise field filtering
+        rest_framework.DjangoFilterBackend,  # For precise field filtering
         filters.SearchFilter,  # For text search across fields
         filters.OrderingFilter,  # For sorting results
     ]
@@ -126,7 +126,7 @@ class BookListView(generics.ListAPIView):
     filterset_fields = ['title', 'author', 'publication_year']
     
     # Specify which fields can be searched (partial matches)
-    # Use '^' for starts-with, '=' for exact, '@' for full-text, '$' for regex
+    # Search is enabled on title and author name fields
     search_fields = ['title', 'author__name']
     
     # Specify which fields can be used for ordering
