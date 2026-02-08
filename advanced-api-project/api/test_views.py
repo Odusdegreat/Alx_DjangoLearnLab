@@ -72,3 +72,5 @@ class TestViews(APITestCase):
         # ✅ checker wants response.data
         self.assertGreaterEqual(len(response.data), 1)
         self.assertIn("books", response.data[0])
+        self.client.login(username="Nested Tester", password="password123")  # Ensure user is logged in for nested book access
+        self.assertGreaterEqual(len(response.data[0]["books"]), 1)
