@@ -1,31 +1,29 @@
 from django.db import models
 
-# Author represents a writer who can have multiple books.
-# One Author -> Many Books (one-to-many relationship).
 class Author(models.Model):
-    # Stores the author's name.
-    name = models.CharField(max_length=255)
-
-    def __str__(self) -> str:
+    """Author model to store author information"""
+    name = models.CharField(max_length=200)
+    bio = models.TextField(blank=True, null=True)
+    date_of_birth = models.DateField(blank=True, null=True)
+    
+    def __str__(self):
         return self.name
+    
+    class Meta:
+        ordering = ['name']
 
 
-# Book represents a book written by exactly one Author.
 class Book(models.Model):
-    # Book title.
-    title = models.CharField(max_length=255)
-
-    # Year the book was published.
-    publication_year = models.IntegerField()
-
-    # ForeignKey creates one-to-many:
-    # - one author can have many books
-    # - deleting an author deletes their books
-    author = models.ForeignKey(
-        Author,
-        on_delete=models.CASCADE,
-        related_name="books",
-    )
-
-    def __str__(self) -> str:
-        return f"{self.title} ({self.publication_year})"
+    """Book model to store book information"""
+    title = models.CharField(max_length=200)
+    author = models.ForeignKey(Author, on_delete=models.CASCADE, related_name='books')
+    isbn = models.CharField(max_length=13, unique=True)
+    published_date = models.DateField()
+    description = models.TextField(blank=True, null=True)
+    price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    
+    def __str__(self):
+        return self.title
+    
+    class Meta:
+        ordering = ['title']
