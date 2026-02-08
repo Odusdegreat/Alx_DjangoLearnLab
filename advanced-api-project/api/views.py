@@ -1,26 +1,25 @@
 """
 API Views for the Advanced API Project
 
-This module contains both ViewSets and Generic Views for handling
-CRUD operations on Author and Book models.
+This module contains ViewSets and Generic Views with advanced features:
+- Filtering: Filter books by title, author, publication_year
+- Searching: Search books by title and author name
+- Ordering: Order books by any field
 
-Generic Views Used:
-- ListAPIView: Retrieve all books
-- RetrieveAPIView: Retrieve a single book by ID
-- CreateAPIView: Create a new book
-- UpdateAPIView: Update an existing book
-- DestroyAPIView: Delete a book
+Features implemented:
+- DjangoFilterBackend for precise filtering
+- SearchFilter for text-based searches
+- OrderingFilter for flexible sorting
 """
 
-from rest_framework import viewsets, generics
+from rest_framework import viewsets, generics, filters
 from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
-from django_filters import rest_framework as filters
+from django_filters.rest_framework import DjangoFilterBackend
 from .models import Author, Book
 from .serializers import AuthorSerializer, BookSerializer
 
 
 # ==================== VIEWSETS ====================
-# These provide a complete set of CRUD operations in a single class
 
 class AuthorViewSet(viewsets.ModelViewSet):
     """
@@ -46,58 +45,110 @@ class BookViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticatedOrReadOnly]
 
 
-# ==================== GENERIC VIEWS FOR BOOKS ====================
-# These provide more granular control over each CRUD operation
+# ==================== GENERIC VIEWS WITH FILTERING/SEARCHING/ORDERING ====================
 
 class BookListView(generics.ListAPIView):
     """
-    ListView: Retrieve all books
+    ListView: Retrieve all books with filtering, searching, and ordering
     
     Endpoint: GET /api/books/list/
     Permissions: Anyone can view (read-only)
-    Features:
-    - Returns a list of all books in the database
-    - Supports filtering and ordering (can be extended)
-    - No authentication required for reading
+    
+    FILTERING OPTIONS:
+    ==================
+    Filter books by exact matches on specific fields:
+    
+    - By title (exact match):
+      GET /api/books/list/?title=Django for Beginners
+    
+    - By author (ID):
+      GET /api/books/list/?author=1
+    
+    - By publication year:
+      GET /api/books/list/?publication_year=2023
+    
+    - Multiple filters (AND logic):
+      GET /api/books/list/?author=1&publication_year=2023
+    
+    SEARCH FUNCTIONALITY:
+    ====================
+    Search across title and author name fields (partial matches):
+    
+    - Search in title or author name:
+      GET /api/books/list/?search=Django
+    
+    - Search returns results that match in either field
+    - Case-insensitive partial matching
+    
+    ORDERING OPTIONS:
+    =================
+    Order results by any field (ascending or descending):
+    
+    - Order by title (A-Z):
+      GET /api/books/list/?ordering=title
+    
+    - Order by title (Z-A):
+      GET /api/books/list/?ordering=-title
+    
+    - Order by publication year (oldest first):
+      GET /api/books/list/?ordering=publication_year
+    
+    - Order by publication year (newest first):
+      GET /api/books/list/?ordering=-publication_year
+    
+    - Multiple ordering fields:
+      GET /api/books/list/?ordering=-publication_year,title
+    
+    COMBINED EXAMPLES:
+    ==================
+    
+    1. Search for "Django" and order by publication year:
+       GET /api/books/list/?search=Django&ordering=-publication_year
+    
+    2. Filter by author and order by title:
+       GET /api/books/list/?author=1&ordering=title
+    
+    3. Filter by year, search for keyword, and order:
+       GET /api/books/list/?publication_year=2023&search=REST&ordering=title
     """
     queryset = Book.objects.all()
     serializer_class = BookSerializer
-    permission_classes = [IsAuthenticatedOrReadOnly]  # Anyone can read
+    permission_classes = [IsAuthenticatedOrReadOnly]
     
-    def get_queryset(self):
-        """
-        Optionally filter books by publication year or author
-        Usage: /api/books/list/?publication_year=2020
-        """
-        queryset = Book.objects.all()
-        
-        # Filter by publication year if provided
-        publication_year = self.request.query_params.get('publication_year', None)
-        if publication_year is not None:
-            queryset = queryset.filter(publication_year=publication_year)
-        
-        # Filter by author if provided
-        author_id = self.request.query_params.get('author', None)
-        if author_id is not None:
-            queryset = queryset.filter(author_id=author_id)
-        
-        return queryset.order_by('-publication_year')  # Order by newest first
+    # Configure filter backends
+    filter_backends = [
+        DjangoFilterBackend,  # For precise field filtering
+        filters.SearchFilter,  # For text search across fields
+        filters.OrderingFilter,  # For sorting results
+    ]
+    
+    # Specify which fields can be filtered (exact matches)
+    filterset_fields = ['title', 'author', 'publication_year']
+    
+    # Specify which fields can be searched (partial matches)
+    # Use '^' for starts-with, '=' for exact, '@' for full-text, '$' for regex
+    search_fields = ['title', 'author__name']
+    
+    # Specify which fields can be used for ordering
+    ordering_fields = ['title', 'publication_year', 'author__name']
+    
+    # Default ordering if none specified
+    ordering = ['-publication_year']  # Newest books first by default
 
 
 class BookDetailView(generics.RetrieveAPIView):
     """
     DetailView: Retrieve a single book by ID
     
-    Endpoint: GET /api/books/<int:pk>/
+    Endpoint: GET /api/books/detail/<int:pk>/
     Permissions: Anyone can view (read-only)
-    Features:
-    - Returns detailed information about a specific book
-    - Accessed via primary key (pk) in URL
-    - No authentication required for reading
+    
+    Example:
+    GET /api/books/detail/1/
     """
     queryset = Book.objects.all()
     serializer_class = BookSerializer
-    permission_classes = [IsAuthenticatedOrReadOnly]  # Anyone can read
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
 
 class BookCreateView(generics.CreateAPIView):
@@ -106,11 +157,6 @@ class BookCreateView(generics.CreateAPIView):
     
     Endpoint: POST /api/books/create/
     Permissions: Only authenticated users can create
-    Features:
-    - Creates a new book instance
-    - Validates data using BookSerializer
-    - Requires authentication
-    - Automatically handles validation errors
     
     Request Body Example:
     {
@@ -121,20 +167,13 @@ class BookCreateView(generics.CreateAPIView):
     """
     queryset = Book.objects.all()
     serializer_class = BookSerializer
-    permission_classes = [IsAuthenticated]  # Must be logged in to create
+    permission_classes = [IsAuthenticated]
     
     def perform_create(self, serializer):
         """
-        Custom create logic - can be extended to add additional fields
-        or perform custom actions when a book is created
+        Custom create logic with logging
         """
-        # Save the book instance
         book = serializer.save()
-        
-        # You can add custom logic here, such as:
-        # - Logging the creation
-        # - Sending notifications
-        # - Setting default values
         print(f"New book created: {book.title} by {book.author.name}")
 
 
@@ -142,35 +181,27 @@ class BookUpdateView(generics.UpdateAPIView):
     """
     UpdateView: Modify an existing book
     
-    Endpoint: PUT/PATCH /api/books/<int:pk>/update/
+    Endpoint: PUT/PATCH /api/books/update/<int:pk>/
     Permissions: Only authenticated users can update
-    Features:
-    - Updates an existing book instance
-    - Supports both PUT (full update) and PATCH (partial update)
-    - Validates data using BookSerializer
-    - Requires authentication
     
-    Request Body Example (PATCH):
+    Supports:
+    - PUT: Full update (all fields required)
+    - PATCH: Partial update (only specified fields)
+    
+    Example (PATCH):
     {
         "title": "Django for Advanced Users"
     }
     """
     queryset = Book.objects.all()
     serializer_class = BookSerializer
-    permission_classes = [IsAuthenticated]  # Must be logged in to update
+    permission_classes = [IsAuthenticated]
     
     def perform_update(self, serializer):
         """
-        Custom update logic - can be extended to perform
-        additional actions when a book is updated
+        Custom update logic with logging
         """
-        # Save the updated book instance
         book = serializer.save()
-        
-        # You can add custom logic here, such as:
-        # - Logging the update
-        # - Sending notifications
-        # - Updating related models
         print(f"Book updated: {book.title}")
 
 
@@ -178,29 +209,22 @@ class BookDeleteView(generics.DestroyAPIView):
     """
     DeleteView: Remove a book
     
-    Endpoint: DELETE /api/books/<int:pk>/delete/
+    Endpoint: DELETE /api/books/delete/<int:pk>/
     Permissions: Only authenticated users can delete
-    Features:
-    - Deletes a book instance from the database
-    - Requires authentication
-    - Returns 204 No Content on success
+    
+    Returns: 204 No Content on success
+    
+    Example:
+    DELETE /api/books/delete/1/
     """
     queryset = Book.objects.all()
     serializer_class = BookSerializer
-    permission_classes = [IsAuthenticated]  # Must be logged in to delete
+    permission_classes = [IsAuthenticated]
     
     def perform_destroy(self, instance):
         """
-        Custom delete logic - can be extended to perform
-        cleanup or validation before deletion
+        Custom delete logic with logging
         """
         book_title = instance.title
-        
-        # Perform the deletion
         instance.delete()
-        
-        # You can add custom logic here, such as:
-        # - Logging the deletion
-        # - Cleaning up related data
-        # - Sending notifications
         print(f"Book deleted: {book_title}")
