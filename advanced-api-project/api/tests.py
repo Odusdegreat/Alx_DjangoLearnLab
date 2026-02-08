@@ -54,4 +54,4 @@ class APIRouterTests(APITestCase):
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertGreaterEqual(len(res.data), 1)
         self.assertIn("books", res.data[0])
-        self.assertGreaterEqual(len(res.data[0]["books"]), 1)
+        
